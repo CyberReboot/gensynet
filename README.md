@@ -1,7 +1,7 @@
 # gensynet
 
 
-A JSONic way to interactively create a quick network spec and synthesize network host descriptions. These host
+A JSONic way to interactively **gen**erate a **sy**nthetic **net**work spec and its network host descriptions. These host
 JSON objects are then written to a timestamped file.
 
 ## usage
