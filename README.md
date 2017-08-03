@@ -53,6 +53,7 @@ still remains a surplus of hosts after dividing them up into the designated Clas
 Takes the total number of hosts, the breakdown of the network as specified in 2-tuples, the breakdown of network devices
 (provided as a dictionary of `'device': integer(count)`), and a domain (if any), and builds JSON profiles of each subnet
 space that makes up the rest of the network. 
+
 	>>> j = synthjson.build_configs(total=100, net_div=[(50, 50), (15, 10), (35,15)], dev_div={'Developer workstation': 
 	35, 'Business workstation': 50, 'Smartphone': 5, 'Printer': 1, 'File server': 5, 'SSH server': 4}, domain=None)
 
