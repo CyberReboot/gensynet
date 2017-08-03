@@ -5,8 +5,9 @@ class netJson:
     """A JSON object that keeps track of the subnet IP space, number of hosts,
        and breakdown of roles"""
 
-    def __init__(self, start_ip=None, hosts=0, roles=None, domain=None):
+    def __init__(self, start_ip=None, netmask=None, hosts=0, roles=None, domain=None):
         self.start_ip = start_ip
+        self.netmask = netmask
         self.host_count = hosts
         self.roles = roles
         self.domain = domain
@@ -14,6 +15,7 @@ class netJson:
     def get(self):
         a = {
             'start_ip': self.start_ip,
+            'netmask': self.netmask,
             'hosts': self.host_count,
             'roles': self.roles
         }

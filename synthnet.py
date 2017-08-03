@@ -159,7 +159,6 @@ def build_configs(total, net_div, dev_div, domain=None):
     """Returns a json object of subnet specifications, or None upon error"""
     global VERBOSE
     total_subnets = calculate_subnets(total, net_div)
-    i = total_subnets
     if total_subnets < 1:
         if VERBOSE:
             print("WARNING: Could not break down nodes into the requested subnets.")
@@ -173,21 +172,34 @@ def build_configs(total, net_div, dev_div, domain=None):
         nodes = int(total * .01 * n[0])
         grouped_nodes = int(254 * .01 * n[1])
         q,r = divide(nodes, grouped_nodes)
+        b,c = divide(total_subnets, 254)
+        if b > 254:
+            print("WARNING: You're about to see some really sick Class C IPs. Have fun.")
         while q > 0:
-            i -= 1
-            start_ip = '10.0.{}.1'.format(i)
-            jsons.append(netjson.netJson(start_ip=start_ip, hosts=grouped_nodes, roles=roles.copy()))
+            if c == 0:
+                b -= 1
+                c = 255
+            c -= 1
+            start_ip = '10.{}.{}.1'.format(b, c)
+            netmask = '10.{}.{}.0/24'.format(b,c)
+            jsons.append(netjson.netJson(start_ip=start_ip, netmask=netmask, hosts=grouped_nodes, roles=roles.copy()))
             host_counter.append(grouped_nodes)
             if VERBOSE:
-                print("Initialized subnet {} with {} hosts starting at {}".format(i, grouped_nodes, start_ip))
+                print("Initialized subnet {} with {} hosts starting at {}".format(len(jsons), grouped_nodes, start_ip))
             q -= 1
         if r > 0:
-            i -= 1
-            start_ip = '10.0.{}.1'.format(i)
-            jsons.append(netjson.netJson(start_ip=start_ip, hosts=r, roles=roles.copy()))
+            if c == 0:
+                b -= 1
+                c = 255
+            c -= 1
+            start_ip = '10.{}.{}.1'.format(b, c)
+            netmask = '10.{}.{}.0/24'.format(b,c)
+            jsons.append(netjson.netJson(start_ip=start_ip, netmask=netmask, hosts=r, roles=roles.copy()))
             host_counter.append(r)
             if VERBOSE:
-                print("Initialized subnet {} with {} hosts starting at {}".format(i, r, start_ip))
+                print("Initialized subnet {} with {} hosts starting at {}".format(len(jsons), r, start_ip))
+    if len(jsons) != total_subnets:
+        print("BUG: Number of subnets created not equal to predicted {}".format(total_subnets))
 
     total_hosts = 0
     for dev in dev_div:
@@ -200,7 +212,7 @@ def build_configs(total, net_div, dev_div, domain=None):
                 host_counter[randomnet] -= 1
                 ct -= 1
     if total_hosts != total:
-        print("WARNING: Number of devices in breakdown did not add up to {}".format(total))
+        print("BUG: Number of devices in breakdown did not add up to {}".format(total))
 
     return jsons
 
@@ -217,7 +229,8 @@ def build_network(subnets, fname, randomspace=True, prettyprint=True):
             host = {
                 'uid':generate_uuid(),
                 'mac':generate_mac(),
-                'rDNS_host':randstring(random.randrange(4,9))
+                'rDNS_host':randstring(random.randrange(4,9)),
+                'netmask':n.netmask
             }
 
             if n.domain != None:
@@ -253,6 +266,7 @@ def build_network(subnets, fname, randomspace=True, prettyprint=True):
                         break
             else:
                 ip = start_ip + hosts_togo
+                host['IP'] = str(ip)
 
             if (prettyprint):
                 outfile.write("{}\n".format(json.dumps(host, indent=2)))
@@ -284,6 +298,9 @@ def main():
     while cont.lower() != 'yes' and cont.lower() != 'y':
         nodect = int(input("How many network nodes? [500]: ") or "500")
 
+        if nodect > 4000000:
+            print("That ({}) is just exorbitant. Next time try less than {}.".format(nodect, 4000000))
+            sys.exit()
                                 #  setting subnet breakdown ----------------
         if (nodect > 50):
             print('Default Node distribution of {} nodes across Class C subnets: '.format(nodect))
