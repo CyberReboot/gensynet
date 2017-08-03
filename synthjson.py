@@ -7,6 +7,7 @@
 #       - achang@iqt.org
 
 import argparse
+from datetime import datetime as dt
 import ipaddress
 import json
 import math
@@ -60,18 +61,32 @@ def generate_fqdn(domain=None, subdomains=0):
     return hostname
 
 
-def generate_os_type(ostypes=None):
-    if ostypes is None:
-        ostypes = [ 'Unknown',
-                    'Windows',
-                    'Linux',
-                    'Mac OS X',
-                    'iOS',
-                    'Android',
-                    'BSD',
-                    'Cisco IOS' ]
-
-    return random.choice(ostypes)
+def generate_os_type(devicetype):
+    if ( devicetype == 'Business workstations'
+      or devicetype == 'Developer workstations'
+      or devicetype == 'Mail servers'
+      or devicetype == 'File servers'
+      or devicetype == 'Internal web servers'
+      or devicetype == 'Database servers'
+      or devicetype == 'Code repositories'
+      or devicetype == 'SSH servers'):
+        return random.choice(['Windows', 'Linux', 'Mac OS X', 'BSD'])
+    elif devicetype == 'Smartphones':
+        return random.choice(['iOS', 'Android', 'Blackberry'])
+    elif devicetype == 'DNS servers':
+        return random.choice(['Windows', 'Linux', 'Mac OS X', 'BSD', 'Cisco IOS'])
+    elif ( devicetype == 'Printers'
+      or devicetype == 'PBXes'):
+        return random.choice(['Linux', 'Unknown', 'Windows'])
+    elif devicetype == 'DHCP servers':
+        return random.choice(['Linux', 'Unknown', 'Windows', 'BSD', 'Cisco IOS'])
+    elif devicetype == 'Active Directory controllers':
+        return random.choice(['Unknown', 'Windows'])
+    elif devicetype == 'VOIP phones':
+        return random.choice(['Linux', 'Windows', 'Unknown'])
+    elif devicetype == 'Unknown':
+        return 'Unknown'
+    return os
 
 
 def generate_mac():
@@ -138,7 +153,7 @@ def get_default_dev_distro(nodect, printout=True):
     return dev_breakdown
 
 
-def build_configs(total, net_div, dev_div, domain):
+def build_configs(total, net_div, dev_div, domain=None):
     """Returns a json object of subnet specifications, or None upon error"""
     global VERBOSE
     total_subnets = calculate_subnets(total, net_div)
@@ -172,17 +187,79 @@ def build_configs(total, net_div, dev_div, domain):
             if VERBOSE:
                 print("Initialized subnet {} with {} hosts starting at {}".format(i, r, start_ip))
 
+    total_hosts = 0
     for dev in dev_div:
         ct = dev_div[dev]
+        total_hosts += ct
         while ct > 0:
             randomnet = random.randrange(0, total_subnets)
             if host_counter[randomnet] > 0:
                 jsons[randomnet].roles[dev] += 1
                 host_counter[randomnet] -= 1
                 ct -= 1
-
+    if total_hosts != total:
+        print("WARNING: Number of devices in breakdown did not add up to {}".format(total))
 
     return jsons
+
+
+def build_network(subnets, fname, randomspace=True, prettyprint=True):
+    global VERBOSE
+    outfile = open(fname, 'w')
+    for n in subnets:
+        start_ip = ipaddress.ip_address(n.start_ip)
+        role_ct = dict(n.roles)
+        hosts_togo = n.host_count
+        ip_taken = []
+        while (hosts_togo > 0):
+            host = {
+                'uid':generate_uuid(),
+                'mac':generate_mac(),
+                'rDNS_host':randstring(random.randrange(4,9))
+            }
+
+            if n.domain != None:
+                host['rDNS_domain'] = n.domain
+
+            host['record'] = {
+                'source':record(),
+                'timestamp': str(dt.now())
+            }
+
+            while True:
+                a_role = random.choice(list(role_ct.keys()))
+                if role_ct[a_role] > 0:
+                    role_ct[a_role] -= 1
+                    host['role'] = {
+                        'role': a_role,
+                        'confidence': random.randrange(55,100)
+                    }
+                    break
+                else:
+                    del(role_ct[a_role])
+
+            host['os'] = { 'os': generate_os_type(host['role']['role']) }
+            if host['os']['os'] != 'Unknown':
+                host['os']['confidence'] = random.randrange(55,100)
+
+            if (randomspace):
+                while True:
+                    ip = start_ip + random.randrange(0, 254)
+                    if ip not in ip_taken:
+                        host['IP'] = str(ip)
+                        ip_taken.append(ip)
+                        break
+            else:
+                ip = start_ip + hosts_togo
+
+            if (prettyprint):
+                outfile.write("{}\n".format(json.dumps(host, indent=2)))
+            else:
+                outfile.write("{},\n".format(json.dumps(host)))
+
+            hosts_togo -= 1
+
+    outfile.close()
 
 
 def main():
@@ -192,10 +269,8 @@ def main():
     args = parser.parse_args()
     if args.verbose:
         VERBOSE = True
-        print('Turned VERBOSE on')
 
     outname = '{}.json'.format(time.strftime("%Y%m%d-%H%M%S"))
-    outfile = open(outname, 'w')
 
     print('\n\n\tSYNTHETIC NETWORK NODE GENERATOR\n')
     cont = 'No'
@@ -268,13 +343,14 @@ def main():
 
     net_configs = build_configs(nodect, net_breakdown, dev_breakdown, domain)
     if VERBOSE:
-        print("\nSaving network profile to {}, based on the following config:".format(outname))
+        print("\nBased on the following config:")
         for i in net_configs:
             print(json.dumps(i.get(), indent=4))
+        print("\nSaved network profile to {}".format(outname))
     else:
-        print("\n Saving network profile to {}".format(outname))
+        print("\n Saved network profile to {}".format(outname))
 
-
+    build_network(net_configs, outname)
 
 
 
