@@ -1,7 +1,8 @@
 # cybersynthesis
 
 
-A JSONic way to interactively create a quick network spec and synthesize network host descriptions.
+A JSONic way to interactively create a quick network spec and synthesize network host descriptions. THese host 
+JSON objects are then written to a timestamped file.
 
 ## usage
 
