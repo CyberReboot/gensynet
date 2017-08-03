@@ -163,6 +163,7 @@ def build_configs(total, net_div, dev_div, domain=None):
         if VERBOSE:
             print("WARNING: Could not break down nodes into the requested subnets.")
         return None
+    b,c = divide(total_subnets, 254)
 
     jsons = []
     host_counter = []
@@ -172,7 +173,6 @@ def build_configs(total, net_div, dev_div, domain=None):
         nodes = int(total * .01 * n[0])
         grouped_nodes = int(254 * .01 * n[1])
         q,r = divide(nodes, grouped_nodes)
-        b,c = divide(total_subnets, 254)
         if b > 254:
             print("WARNING: You're about to see some really sick Class C IPs. Have fun.")
         while q > 0:
