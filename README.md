@@ -6,12 +6,13 @@ JSON objects are then written to a timestamped file.
 
 ## usage
 
-        python3 synthnet.py -h
-        usage: synthnet.py [-h] [-v]
+	python3 synthnet.py -h
+	usage: synthnet.py [-h] [-v] [--version]
 
-        optional arguments:
-          -h, --help     show this help message and exit
-          -v, --verbose  Provide program feedback
+	optional arguments:
+	  -h, --help     show this help message and exit
+	  -v, --verbose  Provide program feedback
+	  --version      Prints version
 
 
 ##  useful functions

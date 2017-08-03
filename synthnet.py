@@ -13,6 +13,7 @@ import json
 import math
 import random
 import string
+import sys
 import time
 import uuid
 
@@ -21,6 +22,7 @@ import netjson
 
 
 VERBOSE = False
+VERSION = '1.0.1'
 
 def randstring(size):
     return ''.join(random.choice(string.ascii_lowercase + string.digits)
@@ -263,10 +265,14 @@ def build_network(subnets, fname, randomspace=True, prettyprint=True):
 
 
 def main():
-    global VERBOSE
+    global VERBOSE, VERSION
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', help='Provide program feedback', action="store_true")
+    parser.add_argument('--version', help='Prints version', action="store_true")
     args = parser.parse_args()
+    if args.version:
+        print("{} v{}".format(sys.argv[0], VERSION))
+        sys.exit()
     if args.verbose:
         VERBOSE = True
 
@@ -281,9 +287,9 @@ def main():
                                 #  setting subnet breakdown ----------------
         if (nodect > 50):
             print('Default Node distribution of {} nodes across Class C subnets: '.format(nodect))
-            print('  30% of the nodes will occupy subnets that are 70% populated')
-            print('  45% of the nodes will occupy subnets that are 20% populated')
-            print('  25% of the nodes will occupy subnets that are 90% populated')
+            print('   30% of the nodes will occupy subnets that are 70% populated')
+            print('   45% of the nodes will occupy subnets that are 20% populated')
+            print('   25% of the nodes will occupy subnets that are 90% populated')
             print('Total subnets: {}'.format(calculate_subnets(nodect, net_breakdown)))
             set_net = input("Manually set network node distribution? [No]: ") or "No"
         else:
@@ -321,17 +327,14 @@ def main():
                     dev_breakdown[category] = 0
                     continue
                 category_count = dev_breakdown[category]
-                if (remainder < category_count):
-                    category_count = remainder
                 while (remainder > 0):
-                    if (category == 'Unknown'):
-                        continue
-                    category_count = int(input("{} (MAX={}) [{}]: ".format(category, remainder, dev_breakdown[category])) or category_count)
+                    if (remainder < category_count):
+                        category_count = remainder
+                    category_count = int(input("   {} (MAX={}) [{}]: ".format(category, remainder, category_count)) or category_count)
                     remainder -= category_count
                     if (remainder < 0 or category_count < 0):
                         print("Illegal value {}".format(category_count))
                         remainder += category_count
-
                     else:
                         dev_breakdown[category] = category_count
                         break;
