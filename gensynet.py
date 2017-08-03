@@ -22,7 +22,7 @@ import netjson
 
 
 VERBOSE = False
-VERSION = '1.0.2'
+VERSION = '0.7'
 
 def randstring(size):
     return ''.join(random.choice(string.ascii_lowercase + string.digits)
