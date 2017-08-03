@@ -104,4 +104,4 @@ space that makes up the rest of the network.
 ## bugs and other questions
 
 Please report bugs and issues by opening a ticket on https://va-vsrv-github.a.internal/achang/cybersynthesis
-A JSONic way to interactively create a quick network spec and synthesize network host descriptions.
+
