@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 #
-# An interactive script that generates a JSON file profiling synthetic
-# enterprise networks.
+# Generate Synthetic Networks
+# First Version: 8/3/2017
+#
+# An interactive script that generates a JSON file that can be used for
+# creating imaginary (enterprise) network profiles
 #
 # INTERNAL USE ONLY; i.e., user input validation is nearly non-existent.
-#       - achang@iqt.org
+#
+# Cyber Reboot  
+# alice@cyberreboot.org
+#
 
 import argparse
 from datetime import datetime as dt
@@ -19,10 +25,8 @@ import uuid
 
 import netjson
 
-
-
 VERBOSE = False
-VERSION = '0.7'
+VERSION = '0.71'
 
 def randstring(size):
     return ''.join(random.choice(string.ascii_lowercase + string.digits)
