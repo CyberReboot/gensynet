@@ -26,7 +26,7 @@ import uuid
 import netjson
 
 VERBOSE = False
-VERSION = '0.71'
+VERSION = '0.72'
 
 def randstring(size):
     return ''.join(random.choice(string.ascii_lowercase + string.digits)
@@ -326,7 +326,7 @@ def main():
             while percent > 0:
                 nodes = int(input("   Percent of nodes (MAX={}): ".format(percent)) or "100")
                 density = int(input("   Percent of class C space occupied: ") or "100")
-                if (nodes < 100 and nodes > 1):
+                if (nodes <= 100 and nodes > 1):
                     percent = percent - nodes
                 else:
                     print("Illegal node percentage value ({})".format(nodes))
