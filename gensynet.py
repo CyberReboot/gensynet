@@ -25,7 +25,7 @@ import uuid
 
 VERBOSE = False
 NET_SUMMARY = False
-VERSION = '0.73'
+VERSION = '0.74'
 
 def randstring(size):
     return ''.join(random.choice(string.ascii_lowercase + string.digits)
@@ -233,13 +233,12 @@ def build_configs(total, net_div, dev_div, domain=None):
 def build_network(subnets, fname, randomspace=True, prettyprint=True):
     global VERBOSE
     outfile = open(fname, 'w')
+    outfile.write("[")
     for n in subnets:
         start_ip = ipaddress.ip_address(n['start_ip'])
         role_ct = dict(n['roles'])
         hosts_togo = n['hosts']
         ip_taken = []
-
-        outfile.write("[")
 
         while (hosts_togo > 0):
             host = {
