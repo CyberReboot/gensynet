@@ -6,13 +6,13 @@ JSON objects are then written to a timestamped file.
 
 ## usage
 
-	python3 gensynet.py -h
-	usage: gensynet.py [-h] [-v] [--version]
+    usage: gensynet.py [-h] [-v] [-s] [--version]
 
-	optional arguments:
-	  -h, --help     show this help message and exit
-	  -v, --verbose  Provide program feedback
-	  --version      Prints version
+    optional arguments:
+      -h, --help       show this help message and exit
+      -v, --verbose    Provide program feedback
+      -s, --summarize  Prints network configurations to output
+      --version        Prints version
 
 
 ##  useful functions
@@ -55,54 +55,49 @@ Takes the total number of hosts, the breakdown of the network as specified in 2-
 (provided as a dictionary of `'device': integer(count)`), and a domain (if any), and builds JSON profiles of each subnet
 space that makes up the rest of the network.
 
-	>>> j = gensynet.build_configs(total=100, net_div=[(50, 50), (15, 10), (35,15)], dev_div={'Developer workstation':
-	35, 'Business workstation': 50, 'Smartphone': 5, 'Printer': 1, 'File server': 5, 'SSH server': 4}, domain=None)
-
-	Initialized subnet 2 with 50 hosts starting at 10.0.2.1
-	Initialized subnet 1 with 15 hosts starting at 10.0.1.1
-	Initialized subnet 0 with 35 hosts starting at 10.0.0.1
-	>>> for i in j:
-	...     print(json.dumps(i.get(), indent=2))
-	...
-	{
-	  "start_ip": "10.0.2.1",
-	  "netmask": "10.0.2.0/24",
-	  "roles": {
-	    "Business workstation": 17,
-	    "SSH server": 2,
-	    "File server": 3,
-	    "Printer": 0,
-	    "Developer workstation": 23,
-	    "Smartphone": 5
-	  },
-	  "hosts": 50
+    >>> j = gensynet.build_configs(total=100, net_div=[(50, 50), (15, 10), (35,15)], dev_div={'Developer workstation': 35, 'Business workstation': 50, 'Smartphone': 5, 'Printer': 1, 'File server': 5, 'SSH server': 4}, domain=None)
+    >>> print(json.dumps(j, indent=2))
+    [
+      {
+	"netmask": "10.0.2.0/24",
+	"hosts": 50,
+	"start_ip": "10.0.2.1",
+	"roles": {
+	  "Smartphone": 1,
+	  "SSH server": 1,
+	  "Business workstation": 22,
+	  "Developer workstation": 20,
+	  "File server": 5,
+	  "Printer": 1
 	}
-	{
-	  "start_ip": "10.0.1.1",
-	  "netmask": "10.0.1.0/24",
-	  "roles": {
-	    "Business workstation": 15,
-	    "SSH server": 0,
-	    "File server": 0,
-	    "Printer": 0,
-	    "Developer workstation": 0,
-	    "Smartphone": 0
-	  },
-	  "hosts": 15
+      },
+      {
+	"netmask": "10.0.1.0/24",
+	"hosts": 15,
+	"start_ip": "10.0.1.1",
+	"roles": {
+	  "Smartphone": 2,
+	  "SSH server": 0,
+	  "Business workstation": 13,
+	  "Developer workstation": 0,
+	  "File server": 0,
+	  "Printer": 0
 	}
-	{
-	  "start_ip": "10.0.0.1",
-	  "netmask": "10.0.0.0/24",
-	  "roles": {
-	    "Business workstation": 18,
-	    "SSH server": 2,
-	    "File server": 2,
-	    "Printer": 1,
-	    "Developer workstation": 12,
-	    "Smartphone": 0
-	  },
-	  "hosts": 35
+      },
+      {
+	"netmask": "10.0.0.0/24",
+	"hosts": 35,
+	"start_ip": "10.0.0.1",
+	"roles": {
+	  "Smartphone": 2,
+	  "SSH server": 3,
+	  "Business workstation": 15,
+	  "Developer workstation": 15,
+	  "File server": 0,
+	  "Printer": 0
 	}
+      }
+    ]
 
 
 ### build_network(subnets, fname, randomspace, prettyprint)
