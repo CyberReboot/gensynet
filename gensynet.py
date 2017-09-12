@@ -8,7 +8,7 @@
 #
 # INTERNAL USE ONLY; i.e., user input validation is nearly non-existent.
 #
-# Cyber Reboot  
+# Cyber Reboot
 # alice@cyberreboot.org
 #
 
@@ -23,10 +23,9 @@ import sys
 import time
 import uuid
 
-import netjson
-
 VERBOSE = False
-VERSION = '0.72'
+NET_SUMMARY = False
+VERSION = '0.73'
 
 def randstring(size):
     return ''.join(random.choice(string.ascii_lowercase + string.digits)
@@ -78,7 +77,7 @@ def generate_os_type(devicetype):
       or devicetype == 'SSH servers'):
         return random.choice(['Windows', 'Linux', 'Mac OS X', 'BSD'])
     elif devicetype == 'Smartphones':
-        return random.choice(['iOS', 'Android', 'Blackberry'])
+        return random.choice(['iOS', 'Android', 'Blackberry', 'Unknown'])
     elif devicetype == 'DNS servers':
         return random.choice(['Windows', 'Linux', 'Mac OS X', 'BSD', 'Cisco IOS'])
     elif ( devicetype == 'Printers'
@@ -178,7 +177,7 @@ def build_configs(total, net_div, dev_div, domain=None):
         grouped_nodes = int(254 * .01 * n[1])
         q,r = divide(nodes, grouped_nodes)
         if b > 254:
-            print("WARNING: You're about to see some really sick Class C IPs. Have fun.")
+            print("WARNING: You're about to see some really sick IPs. Have fun.")
         while q > 0:
             if c == 0:
                 b -= 1
@@ -186,7 +185,12 @@ def build_configs(total, net_div, dev_div, domain=None):
             c -= 1
             start_ip = '10.{}.{}.1'.format(b, c)
             netmask = '10.{}.{}.0/24'.format(b,c)
-            jsons.append(netjson.netJson(start_ip=start_ip, netmask=netmask, hosts=grouped_nodes, roles=roles.copy()))
+            jsons.append({
+                        "start_ip"  : start_ip,
+                        "netmask"   : netmask,
+                        "hosts"     : grouped_nodes,
+                        "roles"     : roles.copy()
+                    })
             host_counter.append(grouped_nodes)
             if VERBOSE:
                 print("Initialized subnet {} with {} hosts starting at {}".format(len(jsons), grouped_nodes, start_ip))
@@ -198,7 +202,12 @@ def build_configs(total, net_div, dev_div, domain=None):
             c -= 1
             start_ip = '10.{}.{}.1'.format(b, c)
             netmask = '10.{}.{}.0/24'.format(b,c)
-            jsons.append(netjson.netJson(start_ip=start_ip, netmask=netmask, hosts=r, roles=roles.copy()))
+            jsons.append({
+                        "start_ip"  : start_ip,
+                        "netmask"   : netmask,
+                        "hosts"     : r,
+                        "roles"     : roles.copy()
+                    })
             host_counter.append(r)
             if VERBOSE:
                 print("Initialized subnet {} with {} hosts starting at {}".format(len(jsons), r, start_ip))
@@ -212,7 +221,7 @@ def build_configs(total, net_div, dev_div, domain=None):
         while ct > 0:
             randomnet = random.randrange(0, total_subnets)
             if host_counter[randomnet] > 0:
-                jsons[randomnet].roles[dev] += 1
+                jsons[randomnet]['roles'][dev] += 1
                 host_counter[randomnet] -= 1
                 ct -= 1
     if total_hosts != total:
@@ -225,20 +234,23 @@ def build_network(subnets, fname, randomspace=True, prettyprint=True):
     global VERBOSE
     outfile = open(fname, 'w')
     for n in subnets:
-        start_ip = ipaddress.ip_address(n.start_ip)
-        role_ct = dict(n.roles)
-        hosts_togo = n.host_count
+        start_ip = ipaddress.ip_address(n['start_ip'])
+        role_ct = dict(n['roles'])
+        hosts_togo = n['hosts']
         ip_taken = []
+
+        outfile.write("[")
+
         while (hosts_togo > 0):
             host = {
                 'uid':generate_uuid(),
                 'mac':generate_mac(),
                 'rDNS_host':randstring(random.randrange(4,9)),
-                'netmask':n.netmask
+                'netmask':n['netmask']
             }
 
-            if n.domain != None:
-                host['rDNS_domain'] = n.domain
+            if 'domain' in n:
+                host['rDNS_domain'] = n['domain']
 
             host['record'] = {
                 'source':record(),
@@ -273,19 +285,24 @@ def build_network(subnets, fname, randomspace=True, prettyprint=True):
                 host['IP'] = str(ip)
 
             if (prettyprint):
-                outfile.write("{}\n".format(json.dumps(host, indent=2)))
+                if (hosts_togo > 1):
+                    outfile.write("{},\n".format(json.dumps(host, indent=2)))
+                else:
+                    outfile.write("{}".format(json.dumps(host, indent=2)))
             else:
                 outfile.write("{},\n".format(json.dumps(host)))
 
             hosts_togo -= 1
 
+    outfile.write("]")
     outfile.close()
 
 
 def main():
-    global VERBOSE, VERSION
+    global VERBOSE, VERSION, NET_SUMMARY
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', help='Provide program feedback', action="store_true")
+    parser.add_argument('-s', '--summarize', help='Prints network configurations to output', action="store_true")
     parser.add_argument('--version', help='Prints version', action="store_true")
     args = parser.parse_args()
     if args.version:
@@ -293,6 +310,8 @@ def main():
         sys.exit()
     if args.verbose:
         VERBOSE = True
+    if args.summarize:
+        NET_SUMMARY = True
 
     outname = '{}.json'.format(time.strftime("%Y%m%d-%H%M%S"))
 
@@ -366,10 +385,9 @@ def main():
         cont = input("Ready to generate json (No to start over)? [Yes]: ") or "Yes"
 
     net_configs = build_configs(nodect, net_breakdown, dev_breakdown, domain)
-    if VERBOSE:
-        print("\nBased on the following config:")
-        for i in net_configs:
-            print(json.dumps(i.get(), indent=4))
+    if NET_SUMMARY or VERBOSE:
+        print("\nBased on the following config:\n")
+        print(json.dumps(net_configs, indent=4))
         print("\nSaved network profile to {}".format(outname))
     else:
         print("\n Saved network profile to {}".format(outname))
