@@ -25,7 +25,7 @@ import uuid
 
 VERBOSE = False
 NET_SUMMARY = False
-VERSION = '0.74'
+VERSION = '0.75'
 
 def randstring(size):
     return ''.join(random.choice(string.ascii_lowercase + string.digits)
@@ -232,13 +232,15 @@ def build_configs(total, net_div, dev_div, domain=None):
 
 def build_network(subnets, fname, randomspace=True, prettyprint=True):
     global VERBOSE
-    outfile = open(fname, 'w')
-    outfile.write("[")
+    ofile = open(fname, 'w')
+    subnets_togo = len(subnets)
+    ofile.write("[")
     for n in subnets:
         start_ip = ipaddress.ip_address(n['start_ip'])
         role_ct = dict(n['roles'])
         hosts_togo = n['hosts']
         ip_taken = []
+        subnets_togo -= 1
 
         while (hosts_togo > 0):
             host = {
@@ -284,17 +286,20 @@ def build_network(subnets, fname, randomspace=True, prettyprint=True):
                 host['IP'] = str(ip)
 
             if (prettyprint):
-                if (hosts_togo > 1):
-                    outfile.write("{},\n".format(json.dumps(host, indent=2)))
+                if (subnets_togo > 0):
+                    ofile.write("{},\n".format(json.dumps(host, indent=2)))
                 else:
-                    outfile.write("{}".format(json.dumps(host, indent=2)))
+                    if (hosts_togo > 1):
+                        ofile.write("{},\n".format(json.dumps(host, indent=2)))
+                    else:
+                        ofile.write("{}".format(json.dumps(host, indent=2)))
             else:
-                outfile.write("{},\n".format(json.dumps(host)))
+                ofile.write("{},\n".format(json.dumps(host)))
 
             hosts_togo -= 1
 
-    outfile.write("]")
-    outfile.close()
+    ofile.write("]")
+    ofile.close()
 
 
 def main():
