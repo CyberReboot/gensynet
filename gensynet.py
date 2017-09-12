@@ -170,9 +170,13 @@ def build_configs(total, net_div, dev_div, domain=None):
 
     jsons = []
     host_counter = []
+    ncount = 0
     roles = dict.fromkeys(dev_div.keys(), 0)
 
     for n in net_div:
+        if VERBOSE:
+            ncount += 1
+            print("Starting net_div {} of {}".format(ncount, len(net_div)))
         nodes = int(total * .01 * n[0])
         grouped_nodes = int(254 * .01 * n[1])
         q,r = divide(nodes, grouped_nodes)
@@ -214,10 +218,14 @@ def build_configs(total, net_div, dev_div, domain=None):
     if len(jsons) != total_subnets:
         print("BUG: Number of subnets created not equal to predicted {}".format(total_subnets))
 
+    print("DEBUG: host_counter = {}".format(host_counter))
+    print("DEBUG: total subnets = {}\t".format(total_subnets))
+
     total_hosts = 0
     for dev in dev_div:
         ct = dev_div[dev]
         total_hosts += ct
+        print("DEBUG: dev = {}\tcount = {}\ttotal = {}\thost_counter = {}".format(dev, dev_div[dev], total_hosts, host_counter))
         while ct > 0:
             randomnet = random.randrange(0, total_subnets)
             if host_counter[randomnet] > 0:
@@ -387,6 +395,8 @@ def main():
 
         domain = input("Domain name to use (press ENTER to auto-generate): ") or generate_fqdn()
         cont = input("Ready to generate json (No to start over)? [Yes]: ") or "Yes"
+
+    print("DEBUG: nodect = {}\nnet_div = {}\n dev_div = {}\ndomain = {}".format(nodect, net_breakdown, dev_breakdown, domain))
 
     net_configs = build_configs(nodect, net_breakdown, dev_breakdown, domain)
     if NET_SUMMARY or VERBOSE:
