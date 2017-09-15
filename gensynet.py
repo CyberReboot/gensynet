@@ -25,7 +25,10 @@ import uuid
 
 VERBOSE = False
 NET_SUMMARY = False
-VERSION = '0.75'
+VERSION = '0.77'
+DEBUG = True
+
+
 
 def randstring(size):
     return ''.join(random.choice(string.ascii_lowercase + string.digits)
@@ -177,8 +180,8 @@ def build_configs(total, net_div, dev_div, domain=None):
         if VERBOSE:
             ncount += 1
             print("Starting net_div {} of {}".format(ncount, len(net_div)))
-        nodes = int(total * .01 * n[0])
-        grouped_nodes = int(254 * .01 * n[1])
+        nodes = round(total * .01 * n[0])
+        grouped_nodes = round(252 * .01 * n[1])
         q,r = divide(nodes, grouped_nodes)
         if b > 254:
             print("WARNING: You're about to see some really sick IPs. Have fun.")
@@ -218,14 +221,15 @@ def build_configs(total, net_div, dev_div, domain=None):
     if len(jsons) != total_subnets:
         print("BUG: Number of subnets created not equal to predicted {}".format(total_subnets))
 
-    print("DEBUG: host_counter = {}".format(host_counter))
-    print("DEBUG: total subnets = {}\t".format(total_subnets))
+    if DEBUG:
+        print("DEBUG: host_counter = {}\ttotal subnets = {}".format(host_counter, total_subnets))
 
     total_hosts = 0
     for dev in dev_div:
         ct = dev_div[dev]
         total_hosts += ct
-        print("DEBUG: dev = {}\tcount = {}\ttotal = {}\thost_counter = {}".format(dev, dev_div[dev], total_hosts, host_counter))
+        if (DEBUG):
+            print("DEBUG: dev = {}\tcount = {}\ttotal = {}\thost_counter = {}".format(dev, dev_div[dev], total_hosts, host_counter))
         while ct > 0:
             randomnet = random.randrange(0, total_subnets)
             if host_counter[randomnet] > 0:
@@ -396,7 +400,8 @@ def main():
         domain = input("Domain name to use (press ENTER to auto-generate): ") or generate_fqdn()
         cont = input("Ready to generate json (No to start over)? [Yes]: ") or "Yes"
 
-    print("DEBUG: nodect = {}\nnet_div = {}\n dev_div = {}\ndomain = {}".format(nodect, net_breakdown, dev_breakdown, domain))
+    if (DEBUG):
+        print("DEBUG: nodect = {}\nnet_div = {}\n dev_div = {}\ndomain = {}".format(nodect, net_breakdown, dev_breakdown, domain))
 
     net_configs = build_configs(nodect, net_breakdown, dev_breakdown, domain)
     if NET_SUMMARY or VERBOSE:
