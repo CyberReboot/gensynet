@@ -26,7 +26,7 @@ import uuid
 VERBOSE = False
 NET_SUMMARY = False
 VERSION = '0.80'
-DEBUG = True
+DEBUG = False
 OLDVERSION = False
 
 
@@ -165,18 +165,15 @@ def get_default_dev_distro(nodect, printout=True):
 def build_configs(subnets, host_count, dev_div, domain=None):
     """Returns a json object of subnet specifications, or None upon error"""
     global VERBOSE
-    jsons = []
-    ip_addr = []
+    jsons = []              # subnet breakdown
+    unlabeled_hosts = []    # number of hosts in the network w/o roles
+    ip_addr = []            # keeping track of the 2nd and 3rd octets in IP
     roles = dict.fromkeys(dev_div.keys(), 0)
-
-    ncount = 0
 
     if len(subnets)/254 > 254:
         print("WARNING: You're about to see some really sick IPs. Have fun.")
 
     for n in subnets:
-        if VERBOSE:
-            print("Building subnet {}:".format(ncount))
         addy = (randint(0,253), randint(0,253))
         while addy in ip_addr:
             addy = (randint(0,253), randint(0,253))
@@ -187,8 +184,25 @@ def build_configs(subnets, host_count, dev_div, domain=None):
                     "hosts"     : n,
                     "roles"     : roles.copy()
                 })
+        unlabeled_hosts.append(n)
         if VERBOSE:
             print("start_ip: {}\t number of hosts: {}\t".format(jsons[-1]['start_ip'], jsons[-1]['hosts']))
+
+    # divvy up the roles, now that the subnets are defined
+    labeled_hosts = 0
+    for dev in dev_div:
+        dev_total = dev_div[dev]
+        labeled_hosts += dev_total
+        while dev_total > 0:
+            while True:
+                n = randrange(0, len(subnets))
+                if (unlabeled_hosts[n] > 0):
+                    jsons[n]['roles'][dev] += 1
+                    unlabeled_hosts[n] -= 1
+                    break
+            dev_total -= 1
+    if labeled_hosts != host_count:
+        print("WARNING: Labeled hosts ({}) didn't equal host count ({})".format(labeled_hosts, host_count))
 
     return jsons
 
@@ -278,18 +292,39 @@ def build_configs_deprecated(total, net_div, dev_div, domain=None):
 def randomize_subnet_breakdown(count, minimum, maximum):
     subnets = []
     nodes_left = count
+
+                # break count into subnets until count = 0 or < min
     while (nodes_left > 0):
         clients = randint(minimum, maximum)
         subnets.append(clients)
         nodes_left -= clients
+        if DEBUG:
+            print("DEBUG: subnet count: {}\tnodes left: {}".format(clients, nodes_left))
         if minimum < nodes_left < maximum:
             subnets.append(nodes_left)
             nodes_left = 0
+        elif nodes_left < minimum:
+            if (len(subnets) * maximum < count):
+                subnets.clear()
+                nodes_left = count
+            else:
+                break
+
+                # divvy up the rest of the nodes among the existing subnets
+    while (nodes_left > 0 or len(subnets) == 0):
+        s = randrange(0, len(subnets))
+        if DEBUG:
+            print("DEBUG: looping with s={}, count={}, left={}".format(s, subnets[s], nodes_left))
+        if subnets[s] < maximum:
+            subnets[s] += 1
+            nodes_left -= 1
+        else:
+            subnets.remove(s)
     return subnets
 
 
 
-def build_network(subnets, fname, randomspace=True, prettyprint=True):
+def build_network(subnets, fname, randomspace=False, prettyprint=True):
     global VERBOSE
     ofile = open(fname, 'w')
     subnets_togo = len(subnets)
@@ -441,7 +476,7 @@ def main():
                             break
 
                     if MAX_min == -1 or maximum != MAX_max:
-                        MAX_min = maximum-1 if (maximum-1 < nodect-maximum) else nodect-maximum
+                        MAX_min = 254-maximum
                     while True:
                         minimum = int(input('Min hosts in subnet (UP TO {}) [{}]: '.format(MAX_min, MAX_min)) or MAX_min)
                         if (minimum < 2 or minimum > MAX_min):
@@ -453,11 +488,14 @@ def main():
 
                     subnets = randomize_subnet_breakdown(nodect, minimum, maximum)
 
-                for i in [i for i,e in enumerate(subnets)]:
-                    print('Subnet #{} has {} hosts.'.format(i, subnets[i]))
+                for i,e in enumerate(subnets):
+                    print('\tSubnet #{} has {} hosts.'.format(i, subnets[i]))
 
-                subnets_finished = input("Is this breakout of subnets OK? [Yes]: ") or "Yes"
-                if subnets_finished.lower() == 'yes' or subnets_finished.lower() == 'y':
+                if (nodect > 252):
+                    subnets_finished = input("Is this breakout of subnets OK? [Yes]: ") or "Yes"
+                    if subnets_finished.lower() == 'yes' or subnets_finished.lower() == 'y':
+                        break
+                else:
                     break
 
                                 #  setting device breakdown ----------------
@@ -485,8 +523,8 @@ def main():
                 dev_breakdown['Unknown'] += remainder
 
         domain = input("Domain name to use (press ENTER to auto-generate): ") or generate_fqdn()
+        randomize = input("Randomize IP addresses in subnet? [Yes]: ") or "Yes"
         cont = input("Ready to generate json (No to start over)? [Yes]: ") or "Yes"
-        print("DEBUG: cont was given {}".format(cont))
         if cont.lower() == 'yes' or cont.lower() == 'y':
             break
 
@@ -497,11 +535,13 @@ def main():
     if NET_SUMMARY or VERBOSE:
         print("\nBased on the following config:\n")
         print(json.dumps(net_configs, indent=4))
-    #     print("\nSaved network profile to {}".format(outname))
-    # else:
-    #     print("\n Saved network profile to {}".format(outname))
-    #build_network(net_configs, outname)
-
+        print("\nSaved network profile to {}".format(outname))
+    else:
+        print("\n Saved network profile to {}".format(outname))
+    if randomize.lower() == 'yes' or randomize.lower() == 'y':
+        build_network(net_configs, outname, randomspace=True)
+    else:
+        build_network(net_configs, outname)
 
 
 if __name__ == "__main__":
