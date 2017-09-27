@@ -71,27 +71,27 @@ def generate_fqdn(domain=None, subdomains=0):
 
 
 def generate_os_type(devicetype):
-    if ( devicetype == 'Business workstations'
-      or devicetype == 'Developer workstations'
-      or devicetype == 'Mail servers'
-      or devicetype == 'File servers'
-      or devicetype == 'Internal web servers'
-      or devicetype == 'Database servers'
-      or devicetype == 'Code repositories'
-      or devicetype == 'SSH servers'):
+    if ( devicetype == 'Business workstation'
+      or devicetype == 'Developer workstation'
+      or devicetype == 'Mail server'
+      or devicetype == 'File server'
+      or devicetype == 'Internal web server'
+      or devicetype == 'Database server'
+      or devicetype == 'Code repository'
+      or devicetype == 'SSH server'):
         return choice(['Windows', 'Linux', 'Mac OS X', 'BSD'])
-    elif devicetype == 'Smartphones':
+    elif devicetype == 'Smartphone':
         return choice(['iOS', 'Android', 'Blackberry', 'Unknown'])
-    elif devicetype == 'DNS servers':
+    elif devicetype == 'DNS server':
         return choice(['Windows', 'Linux', 'Mac OS X', 'BSD', 'Cisco IOS'])
-    elif ( devicetype == 'Printers'
-      or devicetype == 'PBXes'):
+    elif ( devicetype == 'Printer'
+      or devicetype == 'PBX'):
         return choice(['Linux', 'Unknown', 'Windows'])
-    elif devicetype == 'DHCP servers':
+    elif devicetype == 'DHCP server':
         return choice(['Linux', 'Unknown', 'Windows', 'BSD', 'Cisco IOS'])
-    elif devicetype == 'Active Directory controllers':
+    elif devicetype == 'Active Directory controller':
         return choice(['Unknown', 'Windows'])
-    elif devicetype == 'VOIP phones':
+    elif devicetype == 'VOIP phone':
         return choice(['Linux', 'Windows', 'Unknown'])
     elif devicetype == 'Unknown':
         return 'Unknown'
@@ -131,21 +131,21 @@ def get_default_dev_distro(nodect, printout=True):
     """Prints device type breakdowns using default ratios and returns a count of each device."""
     print("Default Device Role Distribution for {} nodes".format(nodect))
     dev_breakdown = {
-        'Business workstations': int(math.floor(nodect*.35)),
-        'Developer workstations': int(math.floor(nodect*.15)),
-        'Smartphones': int(math.floor(nodect*.28)),
-        'Printers': int(math.floor(nodect*.03)),
-        'Mail servers': int(math.floor(nodect*.01)),
-        'File servers': int(math.floor(nodect*.02)),
-        'Internal web servers': int(math.floor(nodect*.06)),
-        'Database servers': int(math.floor(nodect*.01)),
-        'Code repositories': int(math.floor(nodect*.01)),
-        'DNS servers': int(math.floor(nodect*.01)),
-        'DHCP servers': int(math.floor(nodect*.01)),
-        'Active Directory controllers': int(math.floor(nodect*.01)),
-        'SSH servers': int(math.floor(nodect*.01)),
-        'VOIP phones': 0,
-        'PBXes': 0,
+        'Business workstation': int(math.floor(nodect*.35)),
+        'Developer workstation': int(math.floor(nodect*.15)),
+        'Smartphone': int(math.floor(nodect*.28)),
+        'Printer': int(math.floor(nodect*.03)),
+        'Mail server': int(math.floor(nodect*.01)),
+        'File server': int(math.floor(nodect*.02)),
+        'Internal web server': int(math.floor(nodect*.06)),
+        'Database server': int(math.floor(nodect*.01)),
+        'Code repository': int(math.floor(nodect*.01)),
+        'DNS server': int(math.floor(nodect*.01)),
+        'DHCP server': int(math.floor(nodect*.01)),
+        'Active Directory controller': int(math.floor(nodect*.01)),
+        'SSH server': int(math.floor(nodect*.01)),
+        'VOIP phone': 0,
+        'PBX': 0,
         'Unknown': int(math.floor(nodect*.04))
     }
                             # any nodes left over gets put into Unknown
