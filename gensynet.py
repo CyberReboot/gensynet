@@ -328,8 +328,6 @@ def randomize_subnet_breakdown(count, minimum, maximum):
 def build_network(subnets, fname=None, randomspace=False, prettyprint=True):
     global VERBOSE
     outobj = []
-    if fname:
-        ofile = open(fname, 'w')
     subnets_togo = len(subnets)
     for n in subnets:
         start_ip = ipaddress.ip_address(n['start_ip'])
@@ -385,17 +383,12 @@ def build_network(subnets, fname=None, randomspace=False, prettyprint=True):
 
             hosts_togo -= 1
 
-    if prettyprint:
-        if fname:
-            ofile.write("{}".format(json.dumps(outobj, indent=2)))
-        else:
-            return json.dumps(outobj, indent=2)
+    indent = 2 if prettyprint else None
+    if fname:
+        with open(fname, 'w') as ofile:
+            ofile.write("{}".format(json.dumps(outobj, indent=indent)))
     else:
-        if fname:
-            ofile.write("{}".format(json.dumps(outobj)))
-        else:
-            return json.dumps(outobj)
-
+        return json.dumps(outobj, indent=indent)
 
 def main():
     global VERBOSE, VERSION, NET_SUMMARY, OLDVERSION
