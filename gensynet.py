@@ -129,7 +129,8 @@ def calculate_subnets(total, breakdown):
 
 def get_default_dev_distro(nodect, printout=True):
     """Prints device type breakdowns using default ratios and returns a count of each device."""
-    print("Default Device Role Distribution for {} nodes".format(nodect))
+    if (printout):
+        print("Default Device Role Distribution for {} nodes".format(nodect))
     dev_breakdown = {
         'Business workstation': int(math.floor(nodect*.35)),
         'Developer workstation': int(math.floor(nodect*.15)),
