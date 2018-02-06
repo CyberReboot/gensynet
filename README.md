@@ -23,8 +23,9 @@ The Python library can be imported as `import gensynet` with the following (hope
 
 Takes in a partial IP string and returns a random IP string.
 
-        >>> gensynet.generate_ip('10.0')
-        '10.0.128.53'
+    >>> import gensynet
+    >>> gensynet.generate_ip('10.0')
+    '10.0.128.53'
 
 
 ### generate_fqdn(domain=None, subdomains=0)
@@ -32,12 +33,13 @@ Takes in a partial IP string and returns a random IP string.
 Takes in a domain (or randomly generates a gibberish one if none is provided), and builds a FQDN with the specified
 number of subdomains.
 
-	>>> gensynet.generate_fqdn(subdomains=1)
-	'awf.9c24by18nc.local'
-	>>> gensynet.generate_fqdn()
-	'nm3li.local'
-	>>> gensynet.generate_fqdn(domain='a.internal', subdomains=2)
-	'dltyf.7jwmi.a.internal'
+    >>> import gensynet
+    >>> gensynet.generate_fqdn(subdomains=1)
+    'awf.9c24by18nc.local'
+    >>> gensynet.generate_fqdn()
+    'nm3li.local'
+    >>> gensynet.generate_fqdn(domain='a.internal', subdomains=2)
+    'dltyf.7jwmi.a.internal'
 
 
 ### calculate_subnets(total, breakdown)
@@ -55,47 +57,49 @@ Takes the total number of hosts, the breakdown of the network as specified in 2-
 (provided as a dictionary of `'device': integer(count)`), and a domain (if any), and builds JSON profiles of each subnet
 space that makes up the rest of the network.
 
-    >>> j = gensynet.build_configs(total=100, net_div=[(50, 50), (15, 10), (35,15)], dev_div={'Developer workstation': 35, 'Business workstation': 50, 'Smartphone': 5, 'Printer': 1, 'File server': 5, 'SSH server': 4}, domain=None)
+    >>> import gensynet
+    >>> import json
+    >>> j = gensynet.build_configs(host_count=100, subnets=[50, 15, 35], dev_div={'Developer workstation': 35, 'Business workstation': 50, 'Smartphone': 5, 'Printer': 1, 'File server': 5, 'SSH server': 4}, domain=None)
     >>> print(json.dumps(j, indent=2))
     [
       {
-	"netmask": "10.0.2.0/24",
-	"hosts": 50,
-	"start_ip": "10.0.2.1",
-	"roles": {
-	  "Smartphone": 1,
-	  "SSH server": 1,
-	  "Business workstation": 22,
-	  "Developer workstation": 20,
-	  "File server": 5,
-	  "Printer": 1
-	}
+    "netmask": "10.0.2.0/24",
+    "hosts": 50,
+    "start_ip": "10.0.2.1",
+    "roles": {
+      "Smartphone": 1,
+      "SSH server": 1,
+      "Business workstation": 22,
+      "Developer workstation": 20,
+      "File server": 5,
+      "Printer": 1
+    }
       },
       {
-	"netmask": "10.0.1.0/24",
-	"hosts": 15,
-	"start_ip": "10.0.1.1",
-	"roles": {
-	  "Smartphone": 2,
-	  "SSH server": 0,
-	  "Business workstation": 13,
-	  "Developer workstation": 0,
-	  "File server": 0,
-	  "Printer": 0
-	}
+    "netmask": "10.0.1.0/24",
+    "hosts": 15,
+    "start_ip": "10.0.1.1",
+    "roles": {
+      "Smartphone": 2,
+      "SSH server": 0,
+      "Business workstation": 13,
+      "Developer workstation": 0,
+      "File server": 0,
+      "Printer": 0
+    }
       },
       {
-	"netmask": "10.0.0.0/24",
-	"hosts": 35,
-	"start_ip": "10.0.0.1",
-	"roles": {
-	  "Smartphone": 2,
-	  "SSH server": 3,
-	  "Business workstation": 15,
-	  "Developer workstation": 15,
-	  "File server": 0,
-	  "Printer": 0
-	}
+    "netmask": "10.0.0.0/24",
+    "hosts": 35,
+    "start_ip": "10.0.0.1",
+    "roles": {
+      "Smartphone": 2,
+      "SSH server": 3,
+      "Business workstation": 15,
+      "Developer workstation": 15,
+      "File server": 0,
+      "Printer": 0
+    }
       }
     ]
 
@@ -107,6 +111,10 @@ and outputs the JSON descriptions of each host into the file `fname`. There are 
 toggled: if `randomspace` is set to `True`, the IP addresses are randomized across their respective subnets, and are
 otherwise generated sequentially; if `prettyprint` is set to `True`, the JSON is broken up into a human-readable fashion,
 and are otherwise written to file in a single line.
+
+    >>> import gensynet
+    >>> j = gensynet.build_configs(host_count=100, subnets=[50, 15, 35], dev_div={'Developer workstation': 35, 'Business workstation': 50, 'Smartphone': 5, 'Printer': 1, 'File server': 5, 'SSH server': 4}, domain=None)
+    >>> gensynet.build_network(j, 'output.json', randomspace=True)
 
 ## bugs and other questions
 
