@@ -129,7 +129,8 @@ def calculate_subnets(total, breakdown):
 
 def get_default_dev_distro(nodect, printout=True):
     """Prints device type breakdowns using default ratios and returns a count of each device."""
-    print("Default Device Role Distribution for {} nodes".format(nodect))
+    if (printout):
+        print("Default Device Role Distribution for {} nodes".format(nodect))
     dev_breakdown = {
         'Business workstation': int(math.floor(nodect*.35)),
         'Developer workstation': int(math.floor(nodect*.15)),
@@ -324,11 +325,10 @@ def randomize_subnet_breakdown(count, minimum, maximum):
 
 
 
-def build_network(subnets, fname, randomspace=False, prettyprint=True):
+def build_network(subnets, fname=None, randomspace=False, prettyprint=True):
     global VERBOSE
-    ofile = open(fname, 'w')
+    outobj = []
     subnets_togo = len(subnets)
-    ofile.write("[")
     for n in subnets:
         start_ip = ipaddress.ip_address(n['start_ip'])
         role_ct = dict(n['roles'])
@@ -379,22 +379,16 @@ def build_network(subnets, fname, randomspace=False, prettyprint=True):
                 ip = start_ip + hosts_togo
                 host['IP'] = str(ip)
 
-            if (prettyprint):
-                if (subnets_togo > 0):
-                    ofile.write("{},\n".format(json.dumps(host, indent=2)))
-                else:
-                    if (hosts_togo > 1):
-                        ofile.write("{},\n".format(json.dumps(host, indent=2)))
-                    else:
-                        ofile.write("{}".format(json.dumps(host, indent=2)))
-            else:
-                ofile.write("{},\n".format(json.dumps(host)))
+            outobj.append(host)
 
             hosts_togo -= 1
 
-    ofile.write("]")
-    ofile.close()
-
+    indent = 2 if prettyprint else None
+    if fname:
+        with open(fname, 'w') as ofile:
+            ofile.write("{}".format(json.dumps(outobj, indent=indent)))
+    else:
+        return json.dumps(outobj, indent=indent)
 
 def main():
     global VERBOSE, VERSION, NET_SUMMARY, OLDVERSION
