@@ -324,11 +324,12 @@ def randomize_subnet_breakdown(count, minimum, maximum):
 
 
 
-def build_network(subnets, fname, randomspace=False, prettyprint=True):
+def build_network(subnets, fname=None, randomspace=False, prettyprint=True):
     global VERBOSE
-    ofile = open(fname, 'w')
+    outobj = []
+    if fname:
+        ofile = open(fname, 'w')
     subnets_togo = len(subnets)
-    ofile.write("[")
     for n in subnets:
         start_ip = ipaddress.ip_address(n['start_ip'])
         role_ct = dict(n['roles'])
@@ -379,21 +380,20 @@ def build_network(subnets, fname, randomspace=False, prettyprint=True):
                 ip = start_ip + hosts_togo
                 host['IP'] = str(ip)
 
-            if (prettyprint):
-                if (subnets_togo > 0):
-                    ofile.write("{},\n".format(json.dumps(host, indent=2)))
-                else:
-                    if (hosts_togo > 1):
-                        ofile.write("{},\n".format(json.dumps(host, indent=2)))
-                    else:
-                        ofile.write("{}".format(json.dumps(host, indent=2)))
-            else:
-                ofile.write("{},\n".format(json.dumps(host)))
+            outobj.append(host)
 
             hosts_togo -= 1
 
-    ofile.write("]")
-    ofile.close()
+    if prettyprint:
+        if fname:
+            ofile.write("{}".format(json.dumps(outobj, indent=2)))
+        else:
+            return json.dumps(outobj, indent=2)
+    else:
+        if fname:
+            ofile.write("{}".format(json.dumps(outobj)))
+        else:
+            return json.dumps(outobj)
 
 
 def main():
