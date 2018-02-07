@@ -291,8 +291,13 @@ def build_configs_deprecated(total, net_div, dev_div, domain=None):
 
 
 def randomize_subnet_breakdown(count, minimum, maximum):
+    '''Returns an array of host counts (where index = subnet), or None if the input is ridiculous.'''
     subnets = []
     nodes_left = count
+
+    # I mean, this is tested for very large values of count; I haven't tested very small numbers yet.
+    if count <= 0 or minimum > count or maximum > count or minimum < 0 or maximum < 0 or maximum <= minimum:
+        return None
 
                 # break count into subnets until count = 0 or < min
     while (nodes_left > 0):
@@ -305,6 +310,8 @@ def randomize_subnet_breakdown(count, minimum, maximum):
             subnets.append(nodes_left)
             nodes_left = 0
         elif nodes_left < minimum:
+            # i.e., if all the subnets are maxed out but don't add up to the requested count,
+            # then start all over again, cuz there won't be any way to honor min/max requirement.
             if (len(subnets) * maximum < count):
                 subnets.clear()
                 nodes_left = count
@@ -312,15 +319,16 @@ def randomize_subnet_breakdown(count, minimum, maximum):
                 break
 
                 # divvy up the rest of the nodes among the existing subnets
-    while (nodes_left > 0 or len(subnets) == 0):
-        s = randrange(0, len(subnets))
+    subnetIDs = [x for x in iter(range(len(subnets)))]
+    while (nodes_left > 0):
+        s = choice(subnetIDs) # pick a randum subnet
         if DEBUG:
             print("DEBUG: looping with s={}, count={}, left={}".format(s, subnets[s], nodes_left))
         if subnets[s] < maximum:
             subnets[s] += 1
             nodes_left -= 1
         else:
-            subnets.remove(s)
+            subnetIDs.remove(s) 
     return subnets
 
 
