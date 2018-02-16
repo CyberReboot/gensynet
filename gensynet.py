@@ -181,7 +181,7 @@ def build_configs(subnets, host_count, dev_div, domain=None):
         ip_addr.append(addy)
         jsons.append({
                     "start_ip"  : '10.{}.{}.2'.format(addy[0],addy[1]),
-                    "netmask"   : '10.{}.{}.0/24'.format(addy[0], addy[1]),
+                    "subnet"   : '10.{}.{}.0/24'.format(addy[0], addy[1]),
                     "hosts"     : n,
                     "roles"     : roles.copy()
                 })
@@ -242,7 +242,7 @@ def build_configs_deprecated(total, net_div, dev_div, domain=None):
             netmask = '10.{}.{}.0/24'.format(class_b, class_c)
             jsons.append({
                         "start_ip"  : start_ip,
-                        "netmask"   : netmask,
+                        "subnet"   : netmask,
                         "hosts"     : grouped_nodes,
                         "roles"     : roles.copy()
                     })
@@ -259,7 +259,7 @@ def build_configs_deprecated(total, net_div, dev_div, domain=None):
             netmask = '10.{}.{}.0/24'.format(class_b,class_c)
             jsons.append({
                         "start_ip"  : start_ip,
-                        "netmask"   : netmask,
+                        "subnet"   : netmask,
                         "hosts"     : r,
                         "roles"     : roles.copy()
                     })
@@ -349,7 +349,7 @@ def build_network(subnets, fname=None, randomspace=False, prettyprint=True):
                 'uid':generate_uuid(),
                 'mac':generate_mac(),
                 'rDNS_host':randstring(randrange(4,9)),
-                'netmask':n['netmask']
+                'subnet':n['subnet']
             }
 
             if 'domain' in n:
