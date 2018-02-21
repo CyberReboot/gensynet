@@ -63,7 +63,7 @@ space that makes up the rest of the network.
     >>> print(json.dumps(j, indent=2))
     [
       {
-    "netmask": "10.0.2.0/24",
+    "subnet": "10.0.2.0/24",
     "hosts": 50,
     "start_ip": "10.0.2.1",
     "roles": {
@@ -76,7 +76,7 @@ space that makes up the rest of the network.
     }
       },
       {
-    "netmask": "10.0.1.0/24",
+    "subnet": "10.0.1.0/24",
     "hosts": 15,
     "start_ip": "10.0.1.1",
     "roles": {
@@ -89,7 +89,7 @@ space that makes up the rest of the network.
     }
       },
       {
-    "netmask": "10.0.0.0/24",
+    "subnet": "10.0.0.0/24",
     "hosts": 35,
     "start_ip": "10.0.0.1",
     "roles": {
